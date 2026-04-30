@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head><meta charset="UTF-8"></head>
+<body style="background-color: #ffeef8; font-family: sans-serif; padding: 20px;">
+    <h1 style="color: #d63384;">🎬 即將上映電影清單</h1>
+    <p>狀態：資料已存入 MongoDB</p>
+    <p>更新時間：{{ update_time }}</p>
+    <hr>
+    <ul>
+        {% for movie in movies %}
+        <li>{{ movie.title }} - 上映日期：{{ movie.release_date }}</li>
+        {% endfor %}
+    </ul>
+    <br>
+    <a href="/movie3">前往查詢頁面 ➔</a>
+</body>
+</html>
