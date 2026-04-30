@@ -1,35 +1,41 @@
 from flask import Flask, render_template, request
-import firebase_admin
-from firebase_admin import credentials, firestore
+from pymongo import MongoClient
+import certifi
+from datetime import datetime
 
 app = Flask(__name__)
 
-# 初始化 Firebase
-cred = credentials.Certificate("serviceAccountKey.json")
-firebase_admin.initialize_app(cred)
-db = firestore.client()
+# MongoDB 連線資訊 (Đã điền sẵn user/pass của Nhi)
+uri = "mongodb+srv://knhi280125_db_user:x3N6DpTxIzBlfzZ7@cluster0.bdra68f.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+client = MongoClient(uri, tlsCAFile=certifi.where())
+db = client['movie_db']
+movies_col = db['movies']
 
-@app.route("/")
+@app.route('/')
 def index():
-    return '<a href="/searchQ">[ 查詢即將上映電影 ]</a>'
+    return "<h1>Nhi 的作業首頁 - 請訪問 /movie2 或 /movie3</h1>"
 
-@app.route("/searchQ", methods=["POST", "GET"])
-def searchQ():
-    if request.method == "POST":
-        MovieTitle = request.form["MovieTitle"]
-        info = ""
-        collection_ref = db.collection("電影")
-        docs = collection_ref.order_by("showDate").get()
-        for doc in docs:
-            電影資料 = doc.to_dict()
-            if MovieTitle in 電影資料["title"]:
-                info += "片名：" + 電影資料["title"] + "<br>"
-                info += "影片介紹：" + 電影資料["hyperlink"] + "<br>"
-                info += "片長：" + str(電影資料.get("showLength", "未知")) + " 分鐘<br>"
-                info += "上映日期：" + 電影資料["showDate"] + "<br><br>"
-        return info if info != "" else "抱歉，找不到資料。"
-    else:
-        return render_template("input.html")
+@app.route('/movie2')
+def movie2():
+    # 即將上映電影清單
+    upcoming_movies = [
+        {"title": "死侍與鋼鐵人", "release_date": "2024-07-26"},
+        {"title": "小丑：雙重瘋狂", "release_date": "2024-10-04"},
+        {"title": "海洋奇緣 2", "release_date": "2024-11-27"}
+    ]
+    # 存入資料庫
+    movies_col.delete_many({})
+    movies_col.insert_many(upcoming_movies)
+    
+    update_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    return render_template('movie2.html', movies=upcoming_movies, update_time=update_time)
 
-if __name__ == "__main__":
-    app.run(debug=True)
+@app.route('/movie3', methods=['GET', 'POST'])
+def movie3():
+    query_result = []
+    keyword = ""
+    if request.method == 'POST':
+        keyword = request.form.get('keyword')
+        # 從資料庫查詢電影
+        query_result = list(movies_col.find({"title": {"$regex": keyword, "$options": "i"}}))
+    return render_template('movie3.html', movies=query_result, keyword=keyword)
