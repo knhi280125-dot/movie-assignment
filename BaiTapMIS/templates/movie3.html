@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head><meta charset="UTF-8"></head>
+<body style="background-color: #f0f7ff; font-family: sans-serif; padding: 20px;">
+    <h1 style="color: #0d6efd;">🔍 電影資訊查詢</h1>
+    <form method="POST">
+        <input type="text" name="keyword" placeholder="輸入關鍵字..." value="{{ keyword }}">
+        <button type="submit">查詢</button>
+    </form>
+    {% if keyword %}
+        <h3>「{{ keyword }}」的結果：</h3>
+        <ul>
+            {% for movie in movies %}
+            <li>{{ movie.title }} ({{ movie.release_date }})</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    <br>
+    <a href="/movie2">⬅ 回到清單</a>
+</body>
+</html>
